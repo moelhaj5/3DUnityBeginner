@@ -13,24 +13,43 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] AudioSource jumpSound;
 
+    [SerializeField] float mouseSensitivity = 100f;
+    float xRotation = 0f;
+    [SerializeField] Transform playerCamera; // Assign your camera in the Inspector
+
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        Cursor.lockState = CursorLockMode.Locked; // Lock the cursor in place
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Handle player movement
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
-        rb.velocity = new Vector3(horizontalInput * movementSpeed, rb.velocity.y, verticalInput * movementSpeed);
+        // Move in the direction the player is facing
+        Vector3 moveDirection = transform.right * horizontalInput + transform.forward * verticalInput;
+        rb.velocity = new Vector3(moveDirection.x * movementSpeed, rb.velocity.y, moveDirection.z * movementSpeed);
 
+        // Handle jump
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
             Jump();
         }
+
+        // Handle mouse look
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f); // Clamp vertical rotation
+
+        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f); // Rotate camera up/down
+        transform.Rotate(Vector3.up * mouseX); // Rotate player left/right
     }
 
     void Jump()
@@ -53,3 +72,5 @@ public class PlayerMovement : MonoBehaviour
         return Physics.CheckSphere(groundCheck.position, .1f, ground);
     }
 }
+
+
